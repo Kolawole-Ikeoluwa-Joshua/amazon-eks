@@ -77,3 +77,23 @@ aws eks create-cluster \
 aws eks list-clusters
 aws eks describe-cluster --name <custom-eks-cluster>
 ```
+
+### 6. Accessing EKS Cluster
+
+```
+# get a kubeconfig for our cluster
+
+aws eks update-kubeconfig --name getting-started-eks --region <eks-cluster-region>
+
+# grab the config if you want it
+
+cp ~/.kube/config .
+
+# download kubectl
+
+curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.23.6/bin/linux/amd64/kubectl
+
+# move to /usr/bin
+
+chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
+```

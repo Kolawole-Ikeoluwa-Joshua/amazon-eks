@@ -1,2 +1,5 @@
 # AWS VPC Details
 stack.json
+
+# kube/config
+config
