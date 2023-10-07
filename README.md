@@ -97,3 +97,27 @@ curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.23.6/bin/l
 
 chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
 ```
+
+### 7. Add Nodes to EKS Cluster
+
+```
+# create role for nodes
+
+role_arn=$(aws iam create-role --role-name <custom-eks-role-nodes> --assume-role-policy-document file://assume-node-policy.json | jq .Role.Arn | sed s/\"//g)
+
+# assign security, networking & registry policies
+aws iam attach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+aws iam attach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+aws iam attach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+# create nodes
+
+aws eks create-nodegroup \
+--cluster-name <custom-eks-cluster> \
+--nodegroup-name <group-name> \
+--node-role $role_arn \
+--subnets <subnet-Id> \
+--disk-size 30 \
+--scaling-config minSize=1,maxSize=1,desiredSize=1 \
+--instance-types t2.micro
+```
