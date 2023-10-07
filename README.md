@@ -1,5 +1,7 @@
 # Provision Amazon EKS K8s
+
 Two ways to provision EKS Cluster in AWS
+
 - AWS CLI https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html
 - EKS CLI (newer) https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html
 
@@ -22,31 +24,34 @@ cd ./amazon
 yum install jq gzip nano tar git
 
 # Login to AWS
-# Access your "My Security Credentials" section in your profile. 
+# Access your "My Security Credentials" section in your profile.
 # Create an access key
 
 aws configure
 ```
 
-### 3. Create IAM role
+### 3. Create IAM role & Assign IAM role with Policies
 
 ```
 # create our role for EKS
 
 # create role and extract ARN
-role_arn=$(aws iam create-role --role-name test-cluster-eks-role --assume-role-policy-document file://assume-policy.json | jq .Role.Arn | sed s/\"//g)
+role_arn=$(aws iam create-role --role-name <custom-role-name> --assume-role-policy-document file://assume-policy.json | jq .Role.Arn | sed s/\"//g)
 
-# attach an AWS managed policy (AmazonEKSClusterPolicy) to the IAM role 
-aws iam attach-role-policy --role-name test-cluster-eks-role --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-
-
+# attach an AWS managed policy (AmazonEKSClusterPolicy) to the IAM role
+aws iam attach-role-policy --role-name <custom-role-name> --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
 ```
 
-4. Assign IAM role with Policies
-5. Create VPC with 3 Subnets
-6. Create EKS 0.1 USD per hour
-7. Deploy EC2 in subnet & connect to EKS
+### 4. Create VPC with Subnets for Cluster
 
-### Bonus:
+```
+# download VPC CloudFormation template
+curl https://amazon-eks.s3.us-west-2.amazonaws.com/cloudformation/2020-05-08/amazon-eks-vpc-sample.yaml -o vpc.yaml
 
-8. Deploy using EKS CLI
+# deploy VPC with Public subnets using CloudFormation
+aws cloudformation deploy --template-file vpc.yaml --stack-name <custom-cf-stack>
+
+# get stack details
+# take not of vpc subnet ids
+aws cloudformation list-stack-resources --stack-name <custom-cf-stack> > stack.json
+```
