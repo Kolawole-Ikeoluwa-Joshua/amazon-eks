@@ -146,3 +146,36 @@ aws cloudformation delete-stack --stack-name <custom-cf-stack>
 ```
 
 ## EKS CLI (EKS CTL)
+
+```
+# Install EKS CTL
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+mv /tmp/eksctl /usr/local/bin
+
+# verify installation
+eksctl
+
+# Create SSH key for Node access (if you need it)
+
+yum install openssh
+mkdir -p ~/.ssh/
+PASSPHRASE="mysuperstrongpassword"
+ssh-keygen -t rsa -b 4096 -N "${PASSPHRASE}" -C "your_email@example.com" -q -f  ~/.ssh/id_rsa
+chmod 400 ~/.ssh/id_rsa*
+
+eksctl create cluster --name getting-started-eks \
+--region <eks-region> \
+--version 1.16 \
+--managed \
+--node-type t2.micro \
+--nodes 1 \
+--node-volume-size 30 \
+--ssh-access \
+--ssh-public-key=~/.ssh/id_rsa.pub \
+```
+
+## Clean Up
+
+```
+eksctl delete cluster --name <custom-eks-cluster>
+```
