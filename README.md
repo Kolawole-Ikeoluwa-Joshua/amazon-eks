@@ -106,6 +106,7 @@ chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
 role_arn=$(aws iam create-role --role-name <custom-eks-role-nodes> --assume-role-policy-document file://assume-node-policy.json | jq .Role.Arn | sed s/\"//g)
 
 # assign security, networking & registry policies
+
 aws iam attach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
 aws iam attach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
 aws iam attach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
@@ -114,10 +115,34 @@ aws iam attach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:
 
 aws eks create-nodegroup \
 --cluster-name <custom-eks-cluster> \
---nodegroup-name <group-name> \
+--nodegroup-name <node-group-name> \
 --node-role $role_arn \
 --subnets <subnet-Id> \
 --disk-size 30 \
 --scaling-config minSize=1,maxSize=1,desiredSize=1 \
 --instance-types t2.micro
+
+# verify nodes
+kubectl get nodes
 ```
+
+### 8. Clean Up EKS Deployments
+
+```
+aws eks delete-nodegroup --cluster-name <custom-eks-cluster> --nodegroup-name <node-group-name>
+
+aws eks delete-cluster --name <custom-eks-cluster>
+
+aws iam detach-role-policy --role-name <custom-role-name> --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+aws iam delete-role --role-name <custom-role-name>
+
+aws iam detach-role-policy --role-name <custom-eks-role-nodes> --policy-arn  arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+aws iam detach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+aws iam detach-role-policy --role-name <custom-eks-role-nodes> --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+aws iam delete-role --role-name <custom-eks-role-nodes>
+
+aws cloudformation delete-stack --stack-name <custom-cf-stack>
+```
+
+## EKS CLI (EKS CTL)
